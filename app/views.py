@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
-# from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
+
+# from django.http import HttpResponse
 
 from .models import Contact, Collector
 
@@ -8,7 +9,7 @@ from .models import Contact, Collector
 
 
 @login_required
-def index(request):
+def index():
     return redirect("/add-site")
 
 

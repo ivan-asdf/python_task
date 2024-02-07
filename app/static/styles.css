@@ -1,56 +1,57 @@
 .sidebar {
-    background-color: #f5f5ff; /* very light purple */
-    width: 200px;
-    max-width: 200px;
-    position: fixed;
-    left: 0;
-    top: 0;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Center vertically */
-    align-items: center; /* Center horizontally */
-    padding-top: 20px;
+  background-color: #f5f5ff;
+  width: 200px;
+  max-width: 200px;
+  position: fixed;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  /* Center horizontally */
+  align-items: center;
+  padding-top: 20px;
 }
 
 .sidebar ul {
-    list-style-type: none;
-    padding: 0;
+  list-style-type: none;
+  padding: 0;
 
-    position: relative;
-    top: 30%;
+  position: relative;
+  top: 30%;
 
-    max-width: inherit;
-    word-wrap: break-word;
-    align-items: center;
+  max-width: inherit;
+  word-wrap: break-word;
+  align-items: center;
 }
 
 .sidebar ul.user {
-    position: relative;
-    top: auto;
-    bottom: 0%;
+  position: relative;
+  top: auto;
+  bottom: 0%;
 
-    text-align: center;
+  text-align: center;
 }
 
 .sidebar ul li {
-    padding: 10px 0;
-    /*text-align: center; /* Center text horizontally */
+  padding: 10px 0;
+  /*text-align: center; /* Center text horizontally */
 }
 
 .sidebar ul li a:hover {
-    color: purple; /* Hover color */
+  color: purple;
 }
 
 .sidebar ul li.active a {
-    color: purple; /* Set text color to purple */
-    font-weight: bold; /* Set font weight to normal */
+  color: purple;
+  font-weight: bold;
 }
 
 .sidebar ul li a {
-    font-size: 24px;
-    text-decoration: none; /* Remove underline */
-    color: black; /* Default color */
+  font-size: 24px;
+  text-decoration: none;
+  color: black;
 }
 
 .sidebar ul li.username {
@@ -59,57 +60,61 @@
 }
 
 .content {
-    margin-left: 200px; /* Adjust according to the width of the sidebar */
-    padding: 20px;
-    height: 100%;
-    overflow-y: auto;
+  /* Adjust according to the width of the sidebar */
+  margin-left: 200px;
+  padding: 20px;
+  height: 100%;
+  overflow-y: auto;
 }
 
 table {
-    border-collapse: collapse;
-    width: 100%;
+  border-collapse: collapse;
+  width: 100%;
 }
 
-th, td {
-    border: 2px solid #dddddd;
-    text-align: left;
-    padding: 10px;
+th,
+td {
+  border: 2px solid #dddddd;
+  text-align: left;
+  padding: 10px;
 }
 
 th {
-    background-color: #f2f2f2;
+  background-color: #f2f2f2;
 }
 
 .add-site-container {
-    display: flex;
-    align-items: center; /* Center vertically */
-    justify-content: center; /* Center horizontally */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .add-site-container input[type="text"] {
-    width: calc(100% - 80px); /* Adjust width as needed */
-    padding: 8px;
-    font-size: 19px;
-    border: 2px solid #dddddd;
+  width: calc(100% - 80px);
+  padding: 8px;
+  font-size: 19px;
+  border: 2px solid #dddddd;
 }
 
 .add-site-container button {
-    padding: 10px 20px; /* Adjust padding as needed */
-    font-size: 16px;
-    margin-left: 10px; /* Adjust spacing between input and button */
+  padding: 10px 20px;
+  font-size: 16px;
+  /* Adjust spacing between input and button */
+  margin-left: 10px;
 }
 
 .add-site-container button {
-    padding: 11px 22px; /* Adjust padding as needed */
-    font-size: 18px;
-    margin-left: 10px; /* Adjust spacing between input and button */
-    background-color: purple; /* Purple background */
-    color: white; /* White foreground */
-    border-radius: 5px;
-    border: none; /* Remove border */
+  padding: 11px 22px;
+  font-size: 18px;
+  /* Adjust spacing between input and button */
+  margin-left: 10px;
+  background-color: purple;
+  color: white;
+  border-radius: 5px;
+  border: none;
 }
 
 .content tbody tr td {
-    font-weight: normal; /* Set font weight to normal */
-    background-color: white; /* White background */
+  font-weight: normal;
+  background-color: white;
 }

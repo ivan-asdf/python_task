@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "app"
+    "app",
 ]
 
 MIDDLEWARE = [
@@ -81,7 +81,7 @@ DATABASES = {
         "NAME": "dbname",
         "USER": "postgres",
         "PASSWORD": "password",
-        #"HOST": "",   # Use "localhost" if PostgreSQL is running locally
+        # "HOST": "",   # Use "localhost" if PostgreSQL is running locally
         "HOST": os.environ.get("DB_HOST"),
         "PORT": "5432",  # Typically "5432" for PostgreSQL
     }
@@ -124,9 +124,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 # STATIC_ROOT = BASE_DIR / "app/static"
-STATICFILES_DIRS = [
-    BASE_DIR / "app/static"
-]
+STATICFILES_DIRS = [BASE_DIR / "app/static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

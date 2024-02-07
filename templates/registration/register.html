@@ -2,37 +2,37 @@
 <!-- register.html -->
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
-    <link rel="stylesheet" type="text/css" href="{% static "login_register.css" %}">
-</head>
-<body>
-    <div class="container">
-        <div class="form-container">
-            <h2>Register</h2>
-            <form method="post">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit">Register</button>
-            </form>
-            {% if form.errors %}
-                <div class="error-message">
-                    <p>There were errors in the form:</p>
-                    <ul>
-                        {% for field in form %}
-                            {% for error in field.errors %}
-                                <li>{{ error }}</li>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Register</title>
+        <link rel="stylesheet"
+              type="text/css"
+              href="{% static "login_register.css" %}">
+    </head>
+    <body>
+        <div class="container">
+            <div class="form-container">
+                <h2>Register</h2>
+                <form method="post">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit">Register</button>
+                </form>
+                {% if form.errors %}
+                    <div class="error-message">
+                        <p>There were errors in the form:</p>
+                        <ul>
+                            {% for field in form %}
+                                {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
                             {% endfor %}
-                        {% endfor %}
-                    </ul>
+                        </ul>
+                    </div>
+                {% endif %}
+                <div class="link-container">
+                    <a href="{% url 'login' %}">Already have an account? Log in here</a>
                 </div>
-            {% endif %}
-            <div class="link-container">
-                <a href="{% url 'login' %}">Already have an account? Log in here</a>
             </div>
         </div>
-    </div>
-</body>
+    </body>
 </html>

@@ -1,70 +1,73 @@
-.errorlist, .helptext {
+.errorlist,
+.helptext {
   display: none;
 }
 
 body {
-    font-family: Arial, sans-serif;
+  font-family: Arial, sans-serif;
 }
 
 .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
 }
 
 .form-container {
-    background-color: #f5f5ff;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 300px;
+  background-color: #f5f5ff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: 300px;
 }
 
 .form-container h2 {
-    margin-bottom: 20px;
+  margin-bottom: 20px;
 }
 
 .form-container input[type="text"],
 .form-container input[type="password"] {
-    width: 100%; /* Adjusted width */
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    box-sizing: border-box; /* Include padding and border in total width */
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  /* Include padding and border in total width */
+  box-sizing: border-box;
 }
 
 .form-container button {
-    width: 100%;
-    padding: 10px;
-    background-color: purple;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
+  width: 100%;
+  padding: 10px;
+  background-color: purple;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
 }
 
 .form-container button:hover {
-    background-color: #6a0080; /* Darker purple on hover */
+  /* Darker purple on hover */
+  background-color: #6a0080;
 }
 
 .error-message {
-    color: red;
-    margin-top: 10px;
+  color: red;
+  margin-top: 10px;
 }
 
 .link-container {
-    display: block;
-    text-align: center;
-    margin-top: 10px;
+  display: block;
+  text-align: center;
+  margin-top: 10px;
 }
 
 .link-container a {
-    color: purple;
-    text-decoration: none;
+  color: purple;
+  text-decoration: none;
 }
 
 .link-container a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }

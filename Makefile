@@ -1,4 +1,4 @@
-run_local:
+run-local:
 	docker-compose up -d db
 	DB_HOST=localhost \
 	python manage.py runserver 0.0.0.0:80
@@ -11,25 +11,24 @@ makemigrations:
 	DB_HOST=localhost \
 	python manage.py makemigrations
 
-run_composer:
+run-composer:
 	docker-compose up
 
-rebuild_composer:
+rebuild-composer:
 	docker-compose up --build
 
-stop_composer:
+stop-composer:
 	docker-compose down
 
-db_clean:
+db-clean:
 	docker-compose down -v
-	make run_composer
 
 # Usage
 help:
 	@echo "Local development:"
-	@echo "  make run_local"
+	@echo "  make run-local"
 	@echo "Container development:"
-	@echo "  make run_composer"
+	@echo "  make run-composer"
 
-.PHONY: run_local run_composer rebuild_composer stop_composer db_clean help
+.PHONY: run-local run-composer rebuild-composer stop-composer db-clean help
 
