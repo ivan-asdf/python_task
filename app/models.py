@@ -1,4 +1,10 @@
+from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+
+from .constants import COLLECTOR_NAMES
 
 # Create your models here.
 
@@ -9,13 +15,26 @@ class Contact(models.Model):
     contact = models.CharField(max_length=100)
     source = models.CharField(max_length=100)
 
-    def __str__(self):
-        return self.contact
+    # def __str__(self):
+    #     return self.contact
+
 
 class Collector(models.Model):
-    collection_name = models.CharField(max_length=100)
-    status = models.CharField(max_length=50)
-    # You can add more fields as needed for your Collector model
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    status = models.BooleanField(default=True)
 
-    def __str__(self):
-        return self.collection_name
+    def clean(self):
+        super().clean()
+        if self.name not in COLLECTOR_NAMES.ALL:
+            raise ValidationError("Invalid collector name")
+
+    # def __str__(self):
+    #     return self.name
+
+
+@receiver(post_save, sender=User)
+def create_collector(sender, instance, created, **kwargs):
+    if created:
+        for name in COLLECTOR_NAMES.ALL:
+            Collector.objects.create(user=instance, name=name)

@@ -12,39 +12,25 @@
             </tr>
         </thead>
         <tbody>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-            <tr><td>Collection Name</td><td>Status</td><td>Action</td></tr>
-
-            <!-- Loop through collectors and display in table rows -->
+            {% for collector in collectors %}
+              <tr>
+                <td>{{ collector.name }}</td>
+                <td>{{ collector.status }}</td>
+                <td>
+                  <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="collector_id" value="{{ collector.id }}">
+                    <button type="submit">
+                      {% if collector.status %}
+                        Disable
+                      {% else %}
+                        Enable
+                      {% endif %}
+                    </button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
         </tbody>
     </table>
 {% endblock %}
