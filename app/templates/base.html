@@ -1,0 +1,26 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Site{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{% static "styles.css" %}">
+</head>
+<body>
+    <div class="sidebar">
+        <ul>
+            <li class="{% if request.path == "/add-site/" %}active{% endif %}"><a href="{% url "add_site" %}">Add Site</a></li>
+            <li class="{% if request.path == "/all-contacts/" %}active{% endif %}"><a href="{% url "all_contacts" %}">All Contacts</a></li>
+            <li class="{% if request.path == "/collectors/" %}active{% endif %}"><a href="{% url "collectors" %}">Collectors</a></li>
+        </ul>
+        <ul class="user">
+          <li class="username">{{ username }}</li>
+          <li><a href="{% url "logout" %}">Logout</a></li>
+        </ul>
+    </div>
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

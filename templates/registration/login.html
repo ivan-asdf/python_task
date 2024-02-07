@@ -1,8 +1,38 @@
-<!-- templates/registration/login.html -->
-<h2>Log In</h2>
-<form method="post">
-  {% csrf_token %}
-  {{ form }}
-  <button type="submit">Log In</button>
-</form>
-<a href={% url "register" %}>REGISTER</a>
+{% load static %}
+<!-- login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" type="text/css" href="{% static "login_register.css" %}">
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h2>Log In</h2>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Log In</button>
+            </form>
+            {% if form.errors %}
+                <div class="error-message">
+                    <p>There were errors in the form:</p>
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            <div class="link-container">
+                <a href="{% url "register" %}">Don"t have an account? Register here</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
