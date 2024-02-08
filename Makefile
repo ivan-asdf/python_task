@@ -11,6 +11,10 @@ makemigrations:
 	DB_HOST=localhost \
 	python manage.py makemigrations
 
+squashmigrations:
+	DB_HOST=localhost \
+	python manage.py squashmigrations
+
 run-composer:
 	docker-compose up
 
@@ -30,5 +34,5 @@ help:
 	@echo "Container development:"
 	@echo "  make run-composer"
 
-.PHONY: run-local run-composer rebuild-composer stop-composer db-clean help
+.PHONY: run-local run-composer rebuild-composer stop-composer db-clean help squashmigrations
 

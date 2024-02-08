@@ -33,4 +33,19 @@
             {% block content %}{% endblock %}
         </div>
     </body>
+    <!-- success/error dialog -->
+    {% if message %}
+        {% if message.isError %}
+            <div class="error-dialog">
+                <div class="dialog-content">
+                    <h3>ERROR</h3>
+                    {% for k, v in message.errors %}<p>{{ v }}</p>{% endfor %}
+                </div>
+            {% else %}
+                <div class="success-dialog">
+                    <h3>SUCCESS</h3>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
 </html>

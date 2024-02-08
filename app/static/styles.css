@@ -118,3 +118,45 @@ th {
   font-weight: normal;
   background-color: white;
 }
+
+
+.error-dialog,
+.success-dialog {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+
+  animation: fadeOut ease 6s;
+  animation-fill-mode: forwards;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+.error-dialog {
+  background-color: #ffe6e6;
+  border: 2px solid #ff3333;
+  color: #ff3333;
+}
+
+.success-dialog {
+  background-color: #e6ffe6;
+  border: 2px solid #33cc33;
+  color: #33cc33;
+}
+
+.dialog-content {
+  text-align: center;
+}

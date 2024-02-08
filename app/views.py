@@ -3,22 +3,33 @@ from django.contrib.auth.decorators import login_required
 
 # from django.http import HttpResponse
 
-from .models import Contact, Collector
+from .models import Domain, Contact, Collector
 
 # Create your views here.
 
 
 @login_required
-def index():
+def index(request):
     return redirect("/add-site")
 
 
 @login_required
 def add_site(request):
+    user = request.user
+    message = ""
+
     if request.method == "POST":
-        # Handle form submission logic here
-        pass
-    context = {"username": request.user.username}
+        domain_name = request.POST.get("domain_name")
+        message = {"isError": False, "errors": ""}
+        try:
+            # Check if FQDN
+            new_domain = Domain.objects.create(user=user, domain_name=domain_name)
+            new_domain.save()
+        except Exception as e:
+            message["isError"] = True
+            message["errors"] = e
+
+    context = {"username": user.username, "message": message}
     return render(request, "add_site.html", context)
 
 
@@ -33,7 +44,6 @@ def all_contacts(request):
 def collectors(request):
     if request.method == "POST":
         collector_id = request.POST.get("collector_id")
-        print(collector_id)
         c = Collector.objects.get(pk=collector_id)
         c.status = not c.status
         c.save()
