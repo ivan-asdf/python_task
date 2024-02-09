@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "celery",
+    "django_celery_results",
     "app",
 ]
 
@@ -133,3 +135,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_REDIRECT_URL = "/add-site"
 LOGOUT_REDIRECT_URL = "/accounts/login"
+
+# CELERY_BROKER_URL = 'amqp://user:password@localhost'
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_TASK_ACKS_LATE = True

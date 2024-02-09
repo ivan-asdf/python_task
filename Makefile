@@ -1,7 +1,23 @@
-run-local:
-	docker-compose up -d db
-	DB_HOST=localhost \
-	python manage.py runserver 0.0.0.0:80
+# export CELERY_BROKER_URL := amqp://username:password@localhost
+# export DB_HOST := localhost
+
+#.ONESHELL:
+# run-local:
+	# docker-compose up -d --build db
+	# docker-compose up -d --build rabbitmq
+	# python manage.py runserver 0.0.0.0:80 &
+	# celery -A python_task worker --loglevel=info
+	# export DB_HOST=localhost && \
+	# export CELERY_BROKER_URL=amqp://username:password@localhost && \
+	# python manage.py runserver 0.0.0.0:80 && \
+	# echo $$CELERY_BROKER_URL && \
+	# # celery -A python_task worker --loglevel=info
+
+run-dev:
+	docker-compose up --build
+
+run-prod:
+	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
 
 migrate:
 	DB_HOST=localhost \
@@ -15,12 +31,6 @@ squashmigrations:
 	DB_HOST=localhost \
 	python manage.py squashmigrations
 
-run-composer:
-	docker-compose up
-
-rebuild-composer:
-	docker-compose up --build
-
 stop-composer:
 	docker-compose down
 
@@ -29,10 +39,10 @@ db-clean:
 
 # Usage
 help:
-	@echo "Local development:"
-	@echo "  make run-local"
-	@echo "Container development:"
-	@echo "  make run-composer"
+	@echo "Run dev configuration(code is mounted so django will autoload at runtime code changes"
+	@echo "  make run-dev"
+	@echo "Run prod configuration(code copied as part of image)"
+	@echo "  make run-prod"
 
-.PHONY: run-local run-composer rebuild-composer stop-composer db-clean help squashmigrations
+.PHONY: run-dev run-prod stop-composer db-clean migrate makemigrations squashmigrations help
 

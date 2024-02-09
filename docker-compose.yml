@@ -2,14 +2,28 @@ version: '3'
 
 services:
   web:
+   ports:
+     - "80:80"
+   depends_on:
+     - db
+     - rabbitmq
+   environment:
+     - DB_HOST=db
+     - CELERY_BROKER_URL=amqp://username:password@rabbitmq
+       #- DATABASE_URL=postgres://postgres:password@db:5432/dbname
+   entrypoint: ["python", "manage.py", "runserver", "0.0.0.0:80"]
+
+
+  celery:
     build: .
-    ports:
-      - "80:80"
     depends_on:
       - db
+      - rabbitmq
     environment:
       - DB_HOST=db
-        #- DATABASE_URL=postgres://postgres:password@db:5432/dbname
+      - CELERY_BROKER_URL=amqp://username:password@rabbitmq
+    entrypoint: ["celery", "-A", "python_task", "worker", "-l", "info"]
+
 
   db:
     image: postgres:latest
@@ -22,6 +36,17 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  rabbitmq:
+    image: rabbitmq:latest
+    ports:
+      - "5672:5672"  # RabbitMQ default port
+      - "15672:15672"  # RabbitMQ management UI port
+    environment:
+      - RABBITMQ_DEFAULT_USER=username  # Set your desired username
+      - RABBITMQ_DEFAULT_PASS=password  # Set your desired password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq  # Persist RabbitMQ data
+
 volumes:
   db_data:
-
+  rabbitmq_data:

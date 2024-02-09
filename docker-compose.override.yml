@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  web:
+    build:
+      target: base
+    volumes:
+      - type: bind
+        source: .
+        target: /code
+    working_dir: /code

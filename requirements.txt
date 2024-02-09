@@ -1,2 +1,5 @@
 django
+celery
+django_celery_results
 psycopg2
+validators

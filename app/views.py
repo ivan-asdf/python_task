@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 # from django.http import HttpResponse
 
 from .models import Domain, Contact, Collector
+from .tasks import add
 
 # Create your views here.
 
@@ -15,6 +16,9 @@ def index(request):
 
 @login_required
 def add_site(request):
+    result = add.delay(4, 4)
+    print("SERVER", result)
+
     user = request.user
     message = ""
 
