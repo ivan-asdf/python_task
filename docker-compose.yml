@@ -15,15 +15,12 @@ services:
 
 
   celery:
-    build: .
     depends_on:
       - db
       - rabbitmq
     environment:
       - DB_HOST=db
       - CELERY_BROKER_URL=amqp://username:password@rabbitmq
-    entrypoint: ["celery", "-A", "python_task", "worker", "-l", "info"]
-
 
   db:
     image: postgres:latest

@@ -5,3 +5,7 @@ services:
     build:
       target: prod
 
+  celery:
+    build:
+      target: prod
+    entrypoint: celery -A python_task worker --loglevel=info

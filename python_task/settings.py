@@ -139,4 +139,7 @@ LOGOUT_REDIRECT_URL = "/accounts/login"
 # CELERY_BROKER_URL = 'amqp://user:password@localhost'
 CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
 CELERY_RESULT_BACKEND = 'django-db'
+# This makes sure that
+# started but unfinished tasks(due for example abrupt interruption of service)
+# will be restarted automatically
 CELERY_TASK_ACKS_LATE = True

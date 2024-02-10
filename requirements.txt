@@ -1,5 +1,8 @@
 django
+
 celery
 django_celery_results
+watchdog
+
 psycopg2
 validators

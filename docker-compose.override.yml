@@ -9,3 +9,13 @@ services:
         source: .
         target: /code
     working_dir: /code
+
+  celery:
+    build:
+      target: base
+    volumes:
+      - type: bind
+        source: .
+        target: /code
+    working_dir: /code
+    entrypoint: watchmedo auto-restart -d . -p '*.py' --recursive -- celery -A python_task worker --loglevel=info
