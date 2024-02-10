@@ -6,3 +6,4 @@ watchdog
 
 psycopg2
 validators
+python-whois

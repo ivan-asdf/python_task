@@ -17,8 +17,8 @@ def index(request):
 
 @login_required
 def add_site(request):
-    result = test.delay()
-    print("SERVER", result)
+    # result = test.delay()
+    # print("SERVER", result)
 
     user = request.user
     message = ""
