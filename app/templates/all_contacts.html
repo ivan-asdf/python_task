@@ -13,10 +13,10 @@
         <tbody>
             {% for contact in contacts %}
                 <tr>
-                    <td>{{ contact.domain.domain_name }}</td>
+                    <td>{{ contact.domain.name }}</td>
                     <td>{{ contact.contact_type }}</td>
                     <td>{{ contact.contact }}</td>
-                    <td>{{ contact.source }}</td>
+                    <td>{{ contact.collector.name }}</td>
                 </tr>
             {% endfor %}
         </tbody>

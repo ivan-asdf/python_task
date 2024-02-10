@@ -28,6 +28,17 @@ def test():
     print("CONTACT SAVED")
 
 
+def add_email_contact(email, job):
+    Contact.objects.create(
+        user=job.collector.user,
+        domain=job.domain,
+        collector=job.collector,
+        collector_job=job,
+        contact_type="email",
+        contact=email,
+    )
+
+
 @shared_task
 def run_whois_job(collector_job_id):
     collector_job = CollectorJob.objects.get(pk=collector_job_id)
@@ -41,7 +52,7 @@ def run_whois_job(collector_job_id):
         raise Error(ERRORS.RUNNING_ALREADY_COMPLETE_COLLECTOR_JOB)
 
     try:
-        whois_info = whois.whois(collector_job.domain.domain_name)
+        whois_info = whois.whois(collector_job.domain.name)
     except whois.parser.PywhoisError as e:
         print(f"python-whois error: {e}")
         collector_job.status = COLLECTOR_JOB_STATUSES.INVALID
@@ -50,22 +61,10 @@ def run_whois_job(collector_job_id):
         if "emails" in whois_info:
             if isinstance(whois_info["emails"], list):
                 for email in whois_info["emails"]:
-                    Contact.objects.create(
-                        domain=collector_job.domain,
-                        contact_type="email",
-                        contact=email,
-                        # source=Collector.objects.first(),
-                        source="whois",
-                    )
+                    add_email_contact(email, collector_job)
             else:
                 email = whois_info["emails"]
-                Contact.objects.create(
-                    domain=collector_job.domain,
-                    contact_type="email",
-                    contact=email,
-                    # source=Collector.objects.first(),
-                    source="whois",
-                )
+                add_email_contact(email, collector_job)
 
         collector_job.status = COLLECTOR_JOB_STATUSES.COMPLETED
         collector_job.save()

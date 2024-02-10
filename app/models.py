@@ -19,11 +19,11 @@ from .constants import (
 
 class Domain(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    domain_name = models.CharField(max_length=253, unique=True)
+    name = models.CharField(max_length=253, unique=True)
 
     def clean(self):
         super().clean()
-        if not validators.domain(self.domain_name):
+        if not validators.domain(self.name):
             raise ValidationError(ERRORS.NOT_FQDM)
 
     def save(self, *args, **kwargs):
@@ -31,17 +31,7 @@ class Domain(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"user: {self.user} domain_name: {self.domain_name}"
-
-
-class Contact(models.Model):
-    domain = models.ForeignKey(Domain, on_delete=models.CASCADE)
-    contact_type = models.CharField(max_length=50)
-    contact = models.CharField(max_length=254)
-    source = models.CharField(max_length=50)
-
-    # def __str__(self):
-    #     return self.contact
+        return f"user: {self.user} name: {self.name}"
 
 
 class Collector(models.Model):
@@ -67,6 +57,9 @@ class CollectorJob(models.Model):
     collector = models.ForeignKey(Collector, on_delete=models.CASCADE)
     status = models.CharField(max_length=20)
 
+    class Meta:
+        db_table = "app_collector_job"
+
     def clean(self):
         super().clean()
         if self._state.adding:
@@ -80,4 +73,15 @@ class CollectorJob(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"domain: {self.domain.domain_name}, collector: {self.collector.name}, status: {self.status}"
+        return f"domain: {self.domain.name}, collector: {self.collector.name}, status: {self.status}"
+
+
+class Contact(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    domain = models.ForeignKey(Domain, on_delete=models.CASCADE)
+    collector = models.ForeignKey(Collector, on_delete=models.CASCADE)
+    collector_job = models.ForeignKey(
+        CollectorJob, on_delete=models.SET_NULL, null=True
+    )
+    contact_type = models.CharField(max_length=50)
+    contact = models.CharField(max_length=254)

@@ -28,7 +28,7 @@ def add_site(request):
         message = {"isError": False, "errors": ""}
         try:
             # Fails if not FQDN
-            Domain.objects.create(user=user, domain_name=domain_name)
+            Domain.objects.create(user=user, name=domain_name)
         except ValidationError as e:
             message["isError"] = True
             message["errors"] = e
@@ -39,8 +39,9 @@ def add_site(request):
 
 @login_required
 def all_contacts(request):
-    contacts = Contact.objects.all()
-    context = {"contacts": contacts, "username": request.user.username}
+    user = request.user
+    contacts = Contact.objects.filter(user=user)
+    context = {"contacts": contacts, "username": user.username}
     return render(request, "all_contacts.html", context)
 
 
@@ -52,6 +53,7 @@ def collectors(request):
         c.status = not c.status
         c.save()
 
-    collectors = Collector.objects.filter(user_id=request.user.id)
-    context = {"collectors": collectors, "username": request.user.username}
+    user = request.user
+    collectors = Collector.objects.filter(user_id=user.id)
+    context = {"collectors": collectors, "username": user.username}
     return render(request, "collectors.html", context)
