@@ -2,10 +2,7 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
-# from django.http import HttpResponse
-
 from .models import Domain, Contact, Collector
-from .tasks import test
 
 # Create your views here.
 
@@ -17,9 +14,6 @@ def index(request):
 
 @login_required
 def add_site(request):
-    # result = test.delay()
-    # print("SERVER", result)
-
     user = request.user
     message = ""
 

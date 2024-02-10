@@ -4,24 +4,22 @@ from django.dispatch import receiver
 from .tasks import run_whois_job
 from .models import User, Domain, Collector, CollectorJob
 
-from .constants import COLLECTOR_NAMES, COLLECTOR_STATUSES, COLLECTOR_JOB_STATUSES
-
 
 @receiver(post_save, sender=User)
 def create_collector(sender, instance, created, **kwargs):
     if created:
-        for name in COLLECTOR_NAMES.ALL:
-            Collector.objects.create(user=instance, name=name)
+        for name in Collector.NAME_CHOICES:
+            Collector.objects.create(user=instance, name=name[0])
 
 
 @receiver(post_save, sender=Domain)
 def create_collector_jobs(sender, instance, created, **kwargs):
     for collector in Collector.objects.all():
-        if collector.status == COLLECTOR_STATUSES.ACTIVE:
+        if collector.status == Collector.ENABLED:
             CollectorJob.objects.create(
                 domain=instance,
                 collector=collector,
-                status=COLLECTOR_JOB_STATUSES.CREATED,
+                status=CollectorJob.CREATED,
             )
 
 
@@ -29,5 +27,5 @@ def create_collector_jobs(sender, instance, created, **kwargs):
 def run_collector_jobs(sender, instance, created, **kwargs):
     if created:
         print("RUN_COLLECTOR_JOBS SIGNAL CREATED", instance)
-        if instance.collector.name == COLLECTOR_NAMES.WHOIS:
+        if instance.collector.name == Collector.WHOIS:
             run_whois_job.delay(instance.id)

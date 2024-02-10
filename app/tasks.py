@@ -1,31 +1,9 @@
-import time
-
 from celery import shared_task
 from django.db import Error
-from app.models import Contact, Domain, Collector, CollectorJob
-from .constants import COLLECTOR_JOB_STATUSES, ERRORS
-
-# import app.models as models
-# from django.db import models
+from .models import Contact, CollectorJob
+from .constants import ERRORS
 
 import whois
-
-
-@shared_task
-def test():
-    domain = Domain.objects.first()
-    for i in range(1, 11):
-        time.sleep(1)
-        print(i)
-    contact = Contact.objects.create(
-        domain=domain,
-        contact_type="email",
-        contact="dasdas@gmail.com",
-        # source=Collector.objects.first(),
-        source="scraper",
-    )
-    contact.save()
-    print("CONTACT SAVED")
 
 
 def add_email_contact(email, job):
@@ -43,10 +21,10 @@ def add_email_contact(email, job):
 def run_whois_job(collector_job_id):
     collector_job = CollectorJob.objects.get(pk=collector_job_id)
     status = collector_job.status
-    if status == COLLECTOR_JOB_STATUSES.CREATED:
-        collector_job.status = COLLECTOR_JOB_STATUSES.RUNNING
+    if status == CollectorJob.CREATED:
+        collector_job.status = CollectorJob.RUNNING
         collector_job.save()
-    elif status == COLLECTOR_JOB_STATUSES.RUNNING:
+    elif status == CollectorJob.RUNNING:
         pass
     else:
         raise Error(ERRORS.RUNNING_ALREADY_COMPLETE_COLLECTOR_JOB)
@@ -55,7 +33,7 @@ def run_whois_job(collector_job_id):
         whois_info = whois.whois(collector_job.domain.name)
     except whois.parser.PywhoisError as e:
         print(f"python-whois error: {e}")
-        collector_job.status = COLLECTOR_JOB_STATUSES.INVALID
+        collector_job.status = CollectorJob.INVALID
         collector_job.save()
     else:
         if "emails" in whois_info:
@@ -66,7 +44,7 @@ def run_whois_job(collector_job_id):
                 email = whois_info["emails"]
                 add_email_contact(email, collector_job)
 
-        collector_job.status = COLLECTOR_JOB_STATUSES.COMPLETED
+        collector_job.status = CollectorJob.COMPLETED
         collector_job.save()
 
     print("WHOIS JOB RAN", collector_job, whois_info, type(whois_info))
