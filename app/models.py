@@ -6,7 +6,12 @@ from django.contrib.auth.models import User
 
 import validators
 
-from .constants import COLLECTOR_NAMES
+from .constants import (
+    COLLECTOR_JOB_STATUSES,
+    COLLECTOR_NAMES,
+    COLLECTOR_STATUSES,
+    ERRORS,
+)
 
 # Create your models here.
 
@@ -18,7 +23,7 @@ class Domain(models.Model):
     def clean(self):
         super().clean()
         if not validators.domain(self.domain_name):
-            raise ValidationError("Is not FQDM(Fully Qualified Domain Name)")
+            raise ValidationError(ERRORS.NOT_FQDM)
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -46,7 +51,7 @@ class Collector(models.Model):
     def clean(self):
         super().clean()
         if self.name not in COLLECTOR_NAMES.ALL:
-            raise ValidationError("Invalid collector name")
+            raise ValidationError(ERRORS.INVALID_COLLECTOR)
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -56,8 +61,35 @@ class Collector(models.Model):
     #     return self.name
 
 
+class CollectorJob(models.Model):
+    domain = models.ForeignKey(Domain, on_delete=models.CASCADE)
+    collector = models.ForeignKey(Collector, on_delete=models.CASCADE)
+    status = models.CharField(max_length=20)
+
+    def clean(self):
+        super().clean()
+        if self._state.adding:
+            if self.collector.status == COLLECTOR_STATUSES.INACTIVE:
+                raise ValidationError(ERRORS.CREATING_JOB_FOR_DISABLED_COLLECTOR)
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+
 @receiver(post_save, sender=User)
 def create_collector(sender, instance, created, **kwargs):
     if created:
         for name in COLLECTOR_NAMES.ALL:
             Collector.objects.create(user=instance, name=name)
+
+
+@receiver(post_save, sender=Domain)
+def create_collector_jobs(sender, instance, created, **kwargs):
+    for collector in Collector.objects.all():
+        if collector.status == COLLECTOR_STATUSES.ACTIVE:
+            CollectorJob.objects.create(
+                domain=instance,
+                collector=collector,
+                status=COLLECTOR_JOB_STATUSES.CREATED,
+            )

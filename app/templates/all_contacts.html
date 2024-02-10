@@ -11,7 +11,14 @@
             </tr>
         </thead>
         <tbody>
-            <!-- Loop through contacts and display in table rows -->
+            {% for contact in contacts %}
+                <tr>
+                    <td>{{ contact.domain.domain_name }}</td>
+                    <td>{{ contact.contact_type }}</td>
+                    <td>{{ contact.contact }}</td>
+                    <td>{{ contact.source }}</td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
 {% endblock %}

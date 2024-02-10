@@ -1,10 +1,11 @@
+from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 
 # from django.http import HttpResponse
 
 from .models import Domain, Contact, Collector
-from .tasks import add
+from .tasks import test
 
 # Create your views here.
 
@@ -16,7 +17,7 @@ def index(request):
 
 @login_required
 def add_site(request):
-    result = add.delay(4, 4)
+    result = test.delay()
     print("SERVER", result)
 
     user = request.user
@@ -26,10 +27,9 @@ def add_site(request):
         domain_name = request.POST.get("domain_name")
         message = {"isError": False, "errors": ""}
         try:
-            # Check if FQDN
-            new_domain = Domain.objects.create(user=user, domain_name=domain_name)
-            new_domain.save()
-        except Exception as e:
+            # Fails if not FQDN
+            Domain.objects.create(user=user, domain_name=domain_name)
+        except ValidationError as e:
             message["isError"] = True
             message["errors"] = e
 
