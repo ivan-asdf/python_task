@@ -96,22 +96,23 @@ th {
   border: 2px solid #dddddd;
 }
 
-.add-site-container button {
-  padding: 10px 20px;
-  font-size: 16px;
-  /* Adjust spacing between input and button */
-  margin-left: 10px;
-}
-
-.add-site-container button {
+button {
+  cursor: pointer;
   padding: 11px 22px;
   font-size: 18px;
-  /* Adjust spacing between input and button */
-  margin-left: 10px;
   background-color: purple;
   color: white;
   border-radius: 5px;
   border: none;
+}
+
+button:hover {
+  background-color: #6a0080;
+}
+
+.add-site-container button {
+  /* Adjust spacing between input and button */
+  margin-left: 10px;
 }
 
 .content tbody tr td {
