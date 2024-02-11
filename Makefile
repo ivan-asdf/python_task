@@ -37,6 +37,11 @@ stop-composer:
 db-clean:
 	docker-compose down -v
 
+run-dev-d:
+	docker-compose up --build -d
+
+db-clean-full: db-clean run-dev-d makemigrations migrate stop-composer run-dev
+
 # Usage
 help:
 	@echo "Run dev configuration(code is mounted so django will autoload at runtime code changes"

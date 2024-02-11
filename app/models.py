@@ -77,8 +77,6 @@ class CollectorJob(models.Model):
                 raise ValidationError(
                     ERRORS.CREATING_JOB_FOR_DISABLED_COLLECTOR
                 )
-        # elif self.status not in COLLECTOR_JOB_STATUSES.ALL:
-        #     raise ValidationError(ERRORS.INVALID_STATUS_FOR_COLLECTOR_JOB)
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -92,11 +90,22 @@ class CollectorJob(models.Model):
 
 
 class Contact(models.Model):
+    PHONE = "phone"
+    EMAIL = "email"
+    CONTACT_TYPE_CHOICES = [
+        (PHONE, PHONE),
+        (EMAIL, EMAIL),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     domain = models.ForeignKey(Domain, on_delete=models.CASCADE)
     collector = models.ForeignKey(Collector, on_delete=models.CASCADE)
     collector_job = models.ForeignKey(
-        CollectorJob, on_delete=models.SET_NULL, null=True
+        CollectorJob,
+        on_delete=models.SET_NULL,
+        null=True,
     )
-    contact_type = models.CharField(max_length=50)
+    contact_type = models.CharField(
+        max_length=50,
+        choices=CONTACT_TYPE_CHOICES,
+    )
     contact = models.CharField(max_length=254)
