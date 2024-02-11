@@ -1,82 +1,13 @@
-from celery import shared_task
-from django.db import Error
-from .models import Contact, CollectorJob
-from .constants import ERRORS
-
-import whois
+import re
 import requests
 from urllib.parse import urlparse
+
 from bs4 import BeautifulSoup
-import re
 
+from celery import shared_task
+from app.models import Contact, CollectorJob
 
-def make_sure_list(string_or_list):
-    if isinstance(string_or_list, str):
-        return [string_or_list]
-    elif isinstance(string_or_list, list):
-        return string_or_list
-    else:
-        raise TypeError("Input must be either a string or a list")
-
-
-def create_contact_from_data(whois_data, whois_data_key, contact_type, job):
-    if (contact_type != Contact.EMAIL) and (contact_type != Contact.PHONE):
-        raise Error("Invalid contact_type give.")
-
-    if whois_data_key in whois_data:
-        contact_data = whois_data[whois_data_key]
-        if contact_data is not None:
-            contact_data = make_sure_list(contact_data)
-            for contact in contact_data:
-                Contact.objects.create(
-                    user=job.collector.user,
-                    domain=job.domain,
-                    collector=job.collector,
-                    collector_job=job,
-                    contact_type=contact_type,
-                    contact=contact,
-                )
-
-
-def change_job_status(job):
-    status = job.status
-    if status == CollectorJob.CREATED:
-        job.status = CollectorJob.RUNNING
-        job.save()
-    elif status == CollectorJob.RUNNING:
-        pass
-    else:
-        raise Error(ERRORS.RUNNING_ALREADY_COMPLETE_COLLECTOR_JOB)
-
-
-@shared_task
-def run_whois_job(collector_job_id):
-    job = CollectorJob.objects.get(pk=collector_job_id)
-    change_job_status(job)
-
-    try:
-        whois_data = whois.whois(job.domain.name)
-    except whois.parser.PywhoisError as e:
-        print(f"python-whois error: {e}")
-        job.status = CollectorJob.INVALID
-        job.save()
-    else:
-        print(whois_data)
-        create_contact_from_data(
-            whois_data,
-            "emails",
-            Contact.EMAIL,
-            job,
-        )
-        create_contact_from_data(
-            whois_data,
-            "phone",
-            Contact.PHONE,
-            job,
-        )
-
-        job.status = CollectorJob.COMPLETED
-        job.save()
+from .common import change_job_status
 
 
 def get_protocol(domain):
@@ -160,25 +91,23 @@ def parse_page_for_phone(text):
     soup = BeautifulSoup(text, "html.parser")
     for data in soup(["style", "script"]):
         data.decompose()
-    # elements = []
     #regex = r"^(mobile:)?(tel:)?(phone)?\+?(?:[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15}$"
     regex = r"^([^a-z])*(mobile:)?(tel:)?(phone)?\+?(?:[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15}([^a-z])*$"
     for word in keywords:
         for element in soup.find_all():
             if contains_substring(element, word):
-                e = element
                 #print(f"ELEMENT: {element} WORD: {word}")
-                #for e in element.find_all(recursive=True):
-                # text = get_direct_text(child)
-                text = e.get_text()
-                if text != "":
-                    #if e.name == "a" and word == "tel":
-                    print(f"CHILD: {e}")
-                    print(f"TEXT: {text}")
-                    match = re.search(regex, text)
-                    if match:
-                        print(element, word)
-                        return match.group(0).strip()
+                for e in element.find_all(recursive=True):
+                    # text = get_direct_text(child)
+                    text = e.get_text()
+                    if text != "":
+                        #if e.name == "a" and word == "tel":
+                        print(f"CHILD: {e}")
+                        print(f"TEXT: {text}")
+                        match = re.search(regex, text)
+                        if match:
+                            print(element, word)
+                            return match.group(0).strip()
 
     # return elements
     return None
@@ -193,8 +122,9 @@ def get_direct_text(element):
 
 
 def contains_substring(element, s):
-    # if s in get_direct_text(element):
-    #     return True
+    # If contained in total text
+    if s in element.get_text():
+        return True
 
     # If contained in tag name
     if s in element.name:
@@ -259,7 +189,7 @@ def run_scrape_job(collector_job_id):
     base_url = get_protocol(job.domain.name)
 
     page_gen = get_page_links({base_url: None}, 0)
-    for _ in range(1):
+    for _ in range(300):
         html = next(page_gen)
         if html is None:
             break
