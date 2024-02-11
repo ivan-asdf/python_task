@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models.signals import post_save, post_migrate
 from django.dispatch import receiver
 
@@ -8,8 +9,9 @@ from .models import User, Domain, Collector, CollectorJob
 # Create default test user
 @receiver(post_migrate)
 def create_test_user(sender, **kwargs):
-    if not User.objects.filter(username="asdf").exists():
-        User.objects.create_user("asdf", password="asdf")
+    if settings.DEBUG:
+        if not User.objects.filter(username="asdf").exists():
+            User.objects.create_user("asdf", password="asdf")
 
 
 @receiver(post_save, sender=User)

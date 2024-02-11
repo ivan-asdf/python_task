@@ -9,6 +9,8 @@ services:
         source: .
         target: /code
     working_dir: /code
+    environment:
+      - DJANGO_DEBUG=True
 
   celery:
     build:

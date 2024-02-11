@@ -4,6 +4,8 @@ services:
   web:
     build:
       target: prod
+    environment:
+      - DJANGO_DEBUG=False
 
   celery:
     build:

@@ -1,38 +1,29 @@
-# export CELERY_BROKER_URL := amqp://username:password@localhost
-# export DB_HOST := localhost
-
-#.ONESHELL:
-# run-local:
-	# docker-compose up -d --build db
-	# docker-compose up -d --build rabbitmq
-	# python manage.py runserver 0.0.0.0:80 &
-	# celery -A python_task worker --loglevel=info
-	# export DB_HOST=localhost && \
-	# export CELERY_BROKER_URL=amqp://username:password@localhost && \
-	# python manage.py runserver 0.0.0.0:80 && \
-	# echo $$CELERY_BROKER_URL && \
-	# # celery -A python_task worker --loglevel=info
-
 run-dev:
 	docker-compose up --build
 
 run-prod:
 	docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build
 
+stop:
+	docker-compose down
+
 migrate:
+	docker-compose exec web python manage.py migrate
+
+migrate-local:
 	DB_HOST=localhost \
 	python manage.py migrate
 
 makemigrations:
+	docker-compose exec web python manage.py makemigrations
+
+makemigrations-local:
 	DB_HOST=localhost \
 	python manage.py makemigrations
 
-squashmigrations:
-	DB_HOST=localhost \
-	python manage.py squashmigrations
-
-stop-composer:
-	docker-compose down
+# squashmigrations:
+# 	DB_HOST=localhost \
+# 	python manage.py squashmigrations
 
 db-clean:
 	docker-compose down -v
@@ -40,7 +31,7 @@ db-clean:
 run-dev-d:
 	docker-compose up --build -d
 
-db-clean-full: db-clean run-dev-d makemigrations migrate stop-composer run-dev
+db-clean-full: db-clean run-dev-d makemigrations migrate run-dev
 
 # Usage
 help:
@@ -49,5 +40,6 @@ help:
 	@echo "Run prod configuration(code copied as part of image)"
 	@echo "  make run-prod"
 
-.PHONY: run-dev run-prod stop-composer db-clean migrate makemigrations squashmigrations help
-
+.PHONY: run-dev run-prod stop \
+				migrate migrate-local makemigrations makemigrations-local \
+				db-clean run-dev-d db-clean-full

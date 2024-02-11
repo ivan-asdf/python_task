@@ -21,13 +21,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-b46*vtgkkqcj=w_a=14=g#zggz@01g!!$mz1w&+&dw_+zu#*+c"
+SECRET_KEY = (
+    "django-insecure-b46*vtgkkqcj=w_a=14=g#zggz@01g!!$mz1w&+&dw_+zu#*+c"
+)
 
 # SECURITY WARNING: don"t run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DJANGO_DEBUG", "False") == "True"
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = ["localhost"]
 
 # Application definition
 
@@ -58,7 +59,10 @@ ROOT_URLCONF = "python_task.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "python_task/templates", BASE_DIR / "app/templates"],
+        "DIRS": [
+            BASE_DIR / "python_task/templates",
+            BASE_DIR / "app/templates",
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -137,8 +141,8 @@ LOGIN_REDIRECT_URL = "/add-site"
 LOGOUT_REDIRECT_URL = "/accounts/login"
 
 # CELERY_BROKER_URL = 'amqp://user:password@localhost'
-CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL')
-CELERY_RESULT_BACKEND = 'django-db'
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = "django-db"
 # This makes sure that
 # started but unfinished tasks(due for example abrupt interruption of service)
 # will be restarted automatically
