@@ -2,7 +2,7 @@ from django.conf import settings
 from django.db.models.signals import post_save, post_migrate
 from django.dispatch import receiver
 
-from .tasks import run_whois_job
+from .tasks import run_whois_job, run_scrape_job
 from .models import User, Domain, Collector, CollectorJob
 
 
@@ -38,3 +38,5 @@ def run_collector_jobs(sender, instance, created, **kwargs):
         print("RUN_COLLECTOR_JOBS SIGNAL CREATED", instance)
         if instance.collector.name == Collector.WHOIS:
             run_whois_job.delay(instance.id)
+        if instance.collector.name == Collector.SCRAPER:
+            run_scrape_job.delay(instance.id)
