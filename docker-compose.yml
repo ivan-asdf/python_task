@@ -10,8 +10,8 @@ services:
    environment:
      - DB_HOST=db
      - CELERY_BROKER_URL=amqp://username:password@rabbitmq
-       #- DATABASE_URL=postgres://postgres:password@db:5432/dbname
-   entrypoint: ["python", "manage.py", "runserver", "0.0.0.0:80"]
+   # "--insecure" added because static file serving for production is not configured
+   entrypoint: ["python", "manage.py", "runserver", "0.0.0.0:80", "--insecure"]
 
 
   celery:

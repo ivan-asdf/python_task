@@ -1,6 +1,6 @@
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
-from app.models import Domain, Contact, Collector
+from app.models import Collector
 from app.views import index, add_site, all_contacts, collectors
 from app.constants import ERRORS
 

@@ -1,6 +1,5 @@
 from django.test import TestCase
 from django.urls import reverse
-from django.http import HttpRequest
 from django.contrib.auth.models import User
 from app import views
 

@@ -87,7 +87,6 @@ DATABASES = {
         "NAME": "dbname",
         "USER": "postgres",
         "PASSWORD": "password",
-        # "HOST": "",   # Use "localhost" if PostgreSQL is running locally
         "HOST": os.environ.get("DB_HOST"),
         "PORT": "5432",  # Typically "5432" for PostgreSQL
     }
@@ -99,7 +98,6 @@ TEST = {
         "NAME": "dbname_test",
         "USER": "postgres",
         "PASSWORD": "password",
-        # "HOST": "",   # Use "localhost" if PostgreSQL is running locally
         "HOST": os.environ.get("DB_HOST"),
         "PORT": "5432",  # Typically "5432" for PostgreSQL
     }
@@ -110,18 +108,18 @@ TEST = {
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    # {
-    #     "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
-    # },
-    # {
-    #     "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    # },
-    # {
-    #     "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    # },
-    # {
-    #     "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    # },
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
+    },
+    {
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
+    },
 ]
 
 
@@ -152,7 +150,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_REDIRECT_URL = "/add-site"
 LOGOUT_REDIRECT_URL = "/accounts/login"
 
-# CELERY_BROKER_URL = 'amqp://user:password@localhost'
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = "django-db"
 # This makes sure that

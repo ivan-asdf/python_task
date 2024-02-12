@@ -30,9 +30,6 @@ def get_protocol(domain):
         print(f"Error fetching {url}: {e}")
         return None
 
-    # for h in r.history:
-    #     print(h, h.url)
-
     url = get_root_url(r.url)
     print(f"PROTOCOL_URL: {url}")
     return url
@@ -64,23 +61,7 @@ def normalize_url(href):
 def get_root_url(url):
     parsed_url = urlparse(url)
     root_url = parsed_url.scheme + "://" + parsed_url.netloc
-    # print(f"URL {root_url}")
     return root_url
-
-    # Find the index of the third '/' occurrence
-    # index = url.find('/', 8)
-    # if index != -1:
-    #     return url[:index]
-    # else:
-    #     return url
-
-
-# def get_direct_text(element):
-#     element_text = element.string
-#     if element_text:
-#         return element_text
-#     else:
-#         return ""
 
 
 def contains_substring(element, s):
@@ -102,8 +83,6 @@ def contains_substring(element, s):
 
 
 def parse_page_for_phone(soup):
-    print("PARSING")
-
     keywords = ["phone", "tel", "mobile"]
     # Create a list of potentialy searchable elements
     # Gather all elements that contain(as substring) the keywords in:
@@ -112,12 +91,10 @@ def parse_page_for_phone(soup):
     for word in keywords:
         for element in soup.find_all():
             if contains_substring(element, word):
-                # print(f"ELEMENT: {element} WORD: {word}")
                 # Include children of element
                 # The keyword might be contained in element several levels up
                 # from a target element that holds just the phone
                 for e in element.find_all(recursive=True):
-                    # text = get_direct_text(child)
                     searchable_elements.append(e)
                     parent = e.parent
                     # Include siblings of element
@@ -126,29 +103,19 @@ def parse_page_for_phone(soup):
                     for sibling in parent.children:
                         searchable_elements.append(sibling)
 
-    # regex = r"^([^a-z])*(mobile:)?(tel:)?(phone:)?\+?(?:[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15}([^a-z])*$"
     # Gist of the regex:
     # Search for a phone number that is the ONLY content inside an element
     # It is between 5-15 digits
     # It might have spaces(0 to 2) between the digits
     # It might be prefixed: mobile:, tel:, phone: & whitespace characters
-    # regex = r"^(?:[^a-zA-Z\d])*(?:mobile:)?(?:tel:)?(?:phone:)?\+?((?:[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15})(?:[^a-zA-Z\d])*$"
-    # regex = r"^(?:[^a-zA-Z\d\+])*(?:mobile:)?(?:tel:)?(?:phone:)?((?:\+?[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15})(?:[^a-zA-Z\d])*$"
     regex = r"^(?:[^a-zA-Z\d\+])*(?:mobile:\s*)?(?:tel:\s*)?(?:phone:\s*)?((?:\+?[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15})(?:[^a-zA-Z\d])*$"
     for e in searchable_elements:
         text = e.get_text()
         if text != "":
-            # print("=======================START==============================")
-            # print(f".....................ELEMENT.......................\n {e}")
-            # print(f"......................TEXT......................\n {text}")
-            # print("------------------------END-------------------------------")
             match = re.search(regex, text)
             if match:
-                print("MATCH")
                 return match.group(1).strip()
 
-    # return elements
-    print("FINISH")
     return None
 
 
@@ -156,13 +123,8 @@ def parse_page_for_email(soup):
     regex = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
     text = soup.get_text()
 
-    # print("=======================START==============================")
-    # print(f"......................TEXT......................\n {text}")
-    # print("------------------------END-------------------------------")
-
     match = re.search(regex, text)
     if match:
-        print("MATCH")
         return match.group(0).strip()
 
 
@@ -173,7 +135,6 @@ def crawl_web_pages(url_and_data, depth):
     new_url_and_data = {}
     for url in url_and_data:
         if url_and_data[url] is None:
-            print(url)
 
             html = get_html(url)
             url_and_data[url] = html
@@ -187,16 +148,12 @@ def crawl_web_pages(url_and_data, depth):
                 href = link["href"]
                 if href.startswith(get_root_url(url)):  # Absolute URL
                     page_url = normalize_url(href)
-                    # print(f"HERE: url: {url}, href: {href}, get_root_url: {get_root_url(url)}")
-                    # print(f"URL {page_url} HREF")
                 elif href.startswith("http"):  # Foreign domain absolute URL
                     continue
                 else:  # Relative URL
-                    # print(f"HERE: url: {url}, href: {sanitize(href)}")
                     page_url = url + normalize_url(href)
 
                 new_url_and_data[page_url] = None
-            # print(f"NEW URL_AND_DATA: {new_url_and_data.keys()}")
 
     yield from crawl_web_pages({**new_url_and_data, **url_and_data}, depth + 1)
 
@@ -216,8 +173,7 @@ def run_scrape_job(collector_job_id):
         phone_set = False
         email_set = False
         page_gen = crawl_web_pages({base_url: None}, 0)
-        for i in range(MAX_PAGES):
-            print(f"Page {i+1}")
+        for _ in range(MAX_PAGES):
             soup = next(page_gen)
             if soup is None:
                 break
@@ -225,14 +181,12 @@ def run_scrape_job(collector_job_id):
             if not phone_set:
                 phone = parse_page_for_phone(soup)
                 if phone:
-                    print(f"PHONE: {phone}")
                     create_contact(job, Contact.PHONE, phone)
                     phone_set = True
 
             if not email_set:
                 email = parse_page_for_email(soup)
                 if email:
-                    print(f"EMAIL: {email}")
                     create_contact(job, Contact.EMAIL, email)
                     email_set = True
 
