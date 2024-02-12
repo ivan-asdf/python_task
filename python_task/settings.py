@@ -93,6 +93,18 @@ DATABASES = {
     }
 }
 
+TEST = {
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "dbname_test",
+        "USER": "postgres",
+        "PASSWORD": "password",
+        # "HOST": "",   # Use "localhost" if PostgreSQL is running locally
+        "HOST": os.environ.get("DB_HOST"),
+        "PORT": "5432",  # Typically "5432" for PostgreSQL
+    }
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators

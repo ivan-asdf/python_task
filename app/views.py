@@ -4,8 +4,6 @@ from django.contrib.auth.decorators import login_required
 
 from .models import Domain, Contact, Collector
 
-# Create your views here.
-
 
 @login_required
 def index(request):

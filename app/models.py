@@ -1,23 +1,18 @@
+import validators
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
-
-import validators
-
-# from app.tasks import run_whois_job
-# import app.tasks as tasks
+from django.conf import settings
 
 from .constants import (
     ERRORS,
 )
 
-# Create your models here.
-
 
 class Domain(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    # name = models.CharField(max_length=253, unique=True)
-    name = models.CharField(max_length=253)
+    name = models.CharField(max_length=253, unique=not settings.DEBUG)
 
     def clean(self):
         super().clean()

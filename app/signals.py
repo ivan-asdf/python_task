@@ -35,7 +35,6 @@ def create_collector_jobs(sender, instance, created, **kwargs):
 @receiver(post_save, sender=CollectorJob)
 def run_collector_jobs(sender, instance, created, **kwargs):
     if created:
-        print("RUN_COLLECTOR_JOBS SIGNAL CREATED", instance)
         if instance.collector.name == Collector.WHOIS:
             run_whois_job.delay(instance.id)
         if instance.collector.name == Collector.SCRAPER:

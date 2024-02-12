@@ -1,11 +1,11 @@
 import re
-from celery.exceptions import SoftTimeLimitExceeded
-import requests
 from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
+import requests
 
 from celery import shared_task
+from celery.exceptions import SoftTimeLimitExceeded
 from app.models import Contact, CollectorJob
 
 from .common import change_job_status, create_contact

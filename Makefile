@@ -21,9 +21,8 @@ makemigrations-local:
 	DB_HOST=localhost \
 	python manage.py makemigrations
 
-# squashmigrations:
-# 	DB_HOST=localhost \
-# 	python manage.py squashmigrations
+test:
+	docker-compose exec web python manage.py test -v 2
 
 db-clean:
 	docker-compose down -v
@@ -35,10 +34,29 @@ db-clean-full: db-clean run-dev-d makemigrations migrate run-dev
 
 # Usage
 help:
-	@echo "Run dev configuration(code is mounted so django will autoload at runtime code changes"
+	@echo "Run dev configuration (code is mounted so django will autoload at runtime code changes"
 	@echo "  make run-dev"
-	@echo "Run prod configuration(code copied as part of image)"
+	@echo
+	@echo "Run prod configuration (code copied as part of image)"
 	@echo "  make run-prod"
+	@echo
+	@echo "Stop services"
+	@echo "  make stop"
+	@echo
+	@echo "Run migrations"
+	@echo "  make migrate"
+	@echo
+	@echo "Run migrations by trying to connect to db locally"
+	@echo "  make migrate-local"
+	@echo
+	@echo "Run tests"
+	@echo "  make test"
+	@echo
+	@echo "Clean db and stop services"
+	@echo "  make db-clean"
+	@echo
+	@echo "Clean db, do migrations, and run dev configuration (VERY USEFULL for just starting initial DEV configuration)"
+	@echo "  make db-clean-full"
 
 .PHONY: run-dev run-prod stop \
 				migrate migrate-local makemigrations makemigrations-local \
