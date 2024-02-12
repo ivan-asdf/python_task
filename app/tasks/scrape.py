@@ -11,14 +11,25 @@ from app.models import Contact, CollectorJob
 from .common import change_job_status, create_contact
 
 MAX_DEPTH = 10  # Max depth for following links
-MAX_PAGES = 100  # Max pages to download
+MAX_PAGES = 200  # Max pages to download
 TIME_LIMIT = 180  # Max time task runs
-DEFAULT_REQUEST_HEADERS = {"Accept-Language": "en-US"}
+DEFAULT_REQUEST_HEADERS = {
+    "Accept-Language": "en-US",
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:54.0) Gecko/20100101"
+        " Firefox/54.0"
+    ),
+}
 
 
 def get_protocol(domain):
     url = "http://" + domain
-    r = requests.get(url, timeout=10, headers=DEFAULT_REQUEST_HEADERS)
+    try:
+        r = requests.get(url, timeout=10, headers=DEFAULT_REQUEST_HEADERS)
+    except requests.ConnectionError as e:
+        print(f"Error fetching {url}: {e}")
+        return None
+
     # for h in r.history:
     #     print(h, h.url)
 
@@ -28,12 +39,6 @@ def get_protocol(domain):
 
 
 def get_html(url):
-    # try:
-    #     urlparse(url)
-    # except Error as e:
-    #     print(f"Invalid url {url}: {e}")
-    #     return ""
-
     try:
         response = requests.get(
             url, timeout=10, headers=DEFAULT_REQUEST_HEADERS
@@ -46,6 +51,14 @@ def get_html(url):
     except requests.RequestException as e:
         print(f"Error fetching {url}: {e}")
         return ""
+
+
+def get_soup(html):
+    soup = BeautifulSoup(html, "html.parser")
+    for data in soup(["style", "script"]):
+        data.decompose()
+
+    return soup
 
 
 def normalize_url(href):
@@ -70,10 +83,35 @@ def get_root_url(url):
     #     return url
 
 
-def parse_page_for_phone(text):
-    soup = BeautifulSoup(text, "html.parser")
-    for data in soup(["style", "script"]):
-        data.decompose()
+# def get_direct_text(element):
+#     element_text = element.string
+#     if element_text:
+#         return element_text
+#     else:
+#         return ""
+
+
+def contains_substring(element, s):
+    # If contained in total text
+    if s in element.get_text():
+        return True
+
+    # If contained in tag name
+    if s in element.name:
+        return True
+
+    # If contained in attribute name or value
+    for attr, value in element.attrs.items():
+        if isinstance(value, list):
+            value = " ".join(value)
+        if s in attr or s in value:
+            return True
+    return False
+
+
+def parse_page_for_phone(soup):
+    print("PARSING")
+    # soup = get_soup(text)
 
     keywords = ["phone", "tel", "mobile"]
     # Create a list of potentialy searchable elements
@@ -103,47 +141,37 @@ def parse_page_for_phone(text):
     # It is between 5-15 digits
     # It might have spaces(0 to 2) between the digits
     # It might be prefixed: mobile:, tel:, phone: & whitespace characters
-    regex = r"^(?:[^a-zA-Z\d])*(?:mobile:)?(?:tel:)?(?:phone:)?\+?((?:[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15})(?:[^a-zA-Z\d])*$"
+    #regex = r"^(?:[^a-zA-Z\d])*(?:mobile:)?(?:tel:)?(?:phone:)?\+?((?:[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15})(?:[^a-zA-Z\d])*$"
+    regex = r"^(?:[^a-zA-Z\d\+])*(?:mobile:)?(?:tel:)?(?:phone:)?((?:\+?[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15})(?:[^a-zA-Z\d])*$"
     for e in searchable_elements:
         text = e.get_text()
         if text != "":
-            print("=======================START==============================")
-            print(f".....................ELEMENT.......................\n {e}")
-            print(f"......................TEXT......................\n {text}")
-            print("------------------------END-------------------------------")
+            # print("=======================START==============================")
+            # print(f".....................ELEMENT.......................\n {e}")
+            # print(f"......................TEXT......................\n {text}")
+            # print("------------------------END-------------------------------")
             match = re.search(regex, text)
             if match:
                 print("MATCH")
                 return match.group(1).strip()
 
     # return elements
+    print("FINISH")
     return None
 
 
-def get_direct_text(element):
-    element_text = element.string
-    if element_text:
-        return element_text
-    else:
-        return ""
+def parse_page_for_email(soup):
+    regex = r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
+    text = soup.get_text()
 
+    # print("=======================START==============================")
+    # print(f"......................TEXT......................\n {text}")
+    # print("------------------------END-------------------------------")
 
-def contains_substring(element, s):
-    # If contained in total text
-    if s in element.get_text():
-        return True
-
-    # If contained in tag name
-    if s in element.name:
-        return True
-
-    # If contained in attribute name or value
-    for attr, value in element.attrs.items():
-        if isinstance(value, list):
-            value = " ".join(value)
-        if s in attr or s in value:
-            return True
-    return False
+    match = re.search(regex, text)
+    if match:
+        print("MATCH")
+        return match.group(0).strip()
 
 
 def crawl_web_pages(url_and_data, depth):
@@ -157,9 +185,9 @@ def crawl_web_pages(url_and_data, depth):
 
             html = get_html(url)
             url_and_data[url] = html
-            yield html
+            soup = get_soup(html)
+            yield soup
 
-            soup = BeautifulSoup(html, "html.parser")
             links = soup.find_all("a", href=True)
             for link in links:
                 href = link["href"]
@@ -186,19 +214,41 @@ def run_scrape_job(collector_job_id):
         change_job_status(job)
 
         base_url = get_protocol(job.domain.name)
+        if base_url is None:
+            job.status = CollectorJob.INVALID
+            job.save()
+            return
 
+        phone_set = False
+        email_set = False
         page_gen = crawl_web_pages({base_url: None}, 0)
-        for _ in range(MAX_PAGES):
-            html = next(page_gen)
-            if html is None:
+        for i in range(MAX_PAGES):
+            print(f"Page {i+1}")
+            soup = next(page_gen)
+            if soup is None:
                 break
 
-            phone = parse_page_for_phone(html)
-            if phone:
-                print(f"PHONE: {phone}")
-                create_contact(job, Contact.PHONE, phone)
-                job.status = CollectorJob.COMPLETED
-                job.save()
+            if not phone_set:
+                phone = parse_page_for_phone(soup)
+                if phone:
+                    print(f"PHONE: {phone}")
+                    create_contact(job, Contact.PHONE, phone)
+                    phone_set = True
+
+            if not email_set:
+                email = parse_page_for_email(soup)
+                if email:
+                    print(f"EMAIL: {email}")
+                    create_contact(job, Contact.EMAIL, email)
+                    email_set = True
+
+            if email_set and phone_set:
                 break
+
     except SoftTimeLimitExceeded:
         print("Task timed out")
+        job.status = CollectorJob.COMPLETED
+        job.save()
+    else:
+        job.status = CollectorJob.COMPLETED
+        job.save()
