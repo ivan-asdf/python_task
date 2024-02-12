@@ -49,6 +49,12 @@ def run_whois_job(collector_job_id):
         )
         create_contact_from_data(
             whois_data,
+            "email",
+            Contact.EMAIL,
+            job,
+        )
+        create_contact_from_data(
+            whois_data,
             "phone",
             Contact.PHONE,
             job,
