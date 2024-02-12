@@ -53,14 +53,6 @@ def get_html(url):
         return ""
 
 
-def get_soup(html):
-    soup = BeautifulSoup(html, "html.parser")
-    for data in soup(["style", "script"]):
-        data.decompose()
-
-    return soup
-
-
 def normalize_url(href):
     if not href.startswith("http"):
         if not href.startswith("/"):
@@ -111,7 +103,6 @@ def contains_substring(element, s):
 
 def parse_page_for_phone(soup):
     print("PARSING")
-    # soup = get_soup(text)
 
     keywords = ["phone", "tel", "mobile"]
     # Create a list of potentialy searchable elements
@@ -141,8 +132,9 @@ def parse_page_for_phone(soup):
     # It is between 5-15 digits
     # It might have spaces(0 to 2) between the digits
     # It might be prefixed: mobile:, tel:, phone: & whitespace characters
-    #regex = r"^(?:[^a-zA-Z\d])*(?:mobile:)?(?:tel:)?(?:phone:)?\+?((?:[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15})(?:[^a-zA-Z\d])*$"
-    regex = r"^(?:[^a-zA-Z\d\+])*(?:mobile:)?(?:tel:)?(?:phone:)?((?:\+?[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15})(?:[^a-zA-Z\d])*$"
+    # regex = r"^(?:[^a-zA-Z\d])*(?:mobile:)?(?:tel:)?(?:phone:)?\+?((?:[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15})(?:[^a-zA-Z\d])*$"
+    # regex = r"^(?:[^a-zA-Z\d\+])*(?:mobile:)?(?:tel:)?(?:phone:)?((?:\+?[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15})(?:[^a-zA-Z\d])*$"
+    regex = r"^(?:[^a-zA-Z\d\+])*(?:mobile:\s*)?(?:tel:\s*)?(?:phone:\s*)?((?:\+?[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15})(?:[^a-zA-Z\d])*$"
     for e in searchable_elements:
         text = e.get_text()
         if text != "":
@@ -185,7 +177,9 @@ def crawl_web_pages(url_and_data, depth):
 
             html = get_html(url)
             url_and_data[url] = html
-            soup = get_soup(html)
+            soup = BeautifulSoup(html, "html.parser")
+            for data in soup(["style", "script"]):
+                data.decompose()
             yield soup
 
             links = soup.find_all("a", href=True)

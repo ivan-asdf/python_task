@@ -59,5 +59,5 @@ help:
 	@echo "  make db-clean-full"
 
 .PHONY: run-dev run-prod stop \
-				migrate migrate-local makemigrations makemigrations-local \
+				migrate migrate-local makemigrations makemigrations-local test\
 				db-clean run-dev-d db-clean-full
