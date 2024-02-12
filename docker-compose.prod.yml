@@ -4,10 +4,34 @@ services:
   web:
     build:
       target: prod
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     environment:
       - DJANGO_DEBUG=False
 
   celery:
     build:
       target: prod
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     entrypoint: celery -A python_task worker --loglevel=info
+
+  db:
+    healthcheck:
+      test: "pg_isready -U $$POSTGRES_USER -d dbname"
+      interval: 3s
+      timeout: 5s
+      retries: 3
+
+  rabbitmq:
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_listener 5672
+      interval: 3s
+      timeout: 5s
+      retries: 3
