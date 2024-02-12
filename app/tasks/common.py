@@ -1,4 +1,4 @@
-from app.models import CollectorJob
+from app.models import CollectorJob, Contact
 
 
 def change_job_status(job):
@@ -10,3 +10,14 @@ def change_job_status(job):
         pass
     else:
         raise Error(ERRORS.RUNNING_ALREADY_COMPLETE_COLLECTOR_JOB)
+
+
+def create_contact(job, contact_type, contact):
+    Contact.objects.create(
+        user=job.collector.user,
+        domain=job.domain,
+        collector=job.collector,
+        collector_job=job,
+        contact_type=contact_type,
+        contact=contact,
+    )

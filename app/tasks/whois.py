@@ -4,7 +4,7 @@ from celery import shared_task
 from django.db import Error
 from app.models import Contact, CollectorJob
 
-from .common import change_job_status
+from .common import change_job_status, create_contact
 
 
 def make_sure_list(string_or_list):
@@ -18,21 +18,14 @@ def make_sure_list(string_or_list):
 
 def create_contact_from_data(whois_data, whois_data_key, contact_type, job):
     if (contact_type != Contact.EMAIL) and (contact_type != Contact.PHONE):
-        raise Error("Invalid contact_type give.")
+        raise Error("Invalid contact_type given.")
 
     if whois_data_key in whois_data:
         contact_data = whois_data[whois_data_key]
         if contact_data is not None:
             contact_data = make_sure_list(contact_data)
             for contact in contact_data:
-                Contact.objects.create(
-                    user=job.collector.user,
-                    domain=job.domain,
-                    collector=job.collector,
-                    collector_job=job,
-                    contact_type=contact_type,
-                    contact=contact,
-                )
+                create_contact(job, contact_type, contact)
 
 
 @shared_task

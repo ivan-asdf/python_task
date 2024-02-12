@@ -1,4 +1,5 @@
 import re
+from celery.exceptions import SoftTimeLimitExceeded
 import requests
 from urllib.parse import urlparse
 
@@ -7,12 +8,17 @@ from bs4 import BeautifulSoup
 from celery import shared_task
 from app.models import Contact, CollectorJob
 
-from .common import change_job_status
+from .common import change_job_status, create_contact
+
+MAX_DEPTH = 10  # Max depth for following links
+MAX_PAGES = 100  # Max pages to download
+TIME_LIMIT = 180  # Max time task runs
+DEFAULT_REQUEST_HEADERS = {"Accept-Language": "en-US"}
 
 
 def get_protocol(domain):
     url = "http://" + domain
-    r = requests.get(url, timeout=10, headers={"Accept-Language": "en-US"})
+    r = requests.get(url, timeout=10, headers=DEFAULT_REQUEST_HEADERS)
     # for h in r.history:
     #     print(h, h.url)
 
@@ -30,7 +36,7 @@ def get_html(url):
 
     try:
         response = requests.get(
-            url, timeout=10, headers={"Accept-Language": "en-US"}
+            url, timeout=10, headers=DEFAULT_REQUEST_HEADERS
         )
         if response.status_code == 200:
             return response.text
@@ -42,7 +48,7 @@ def get_html(url):
         return ""
 
 
-def sanitize(href):
+def normalize_url(href):
     if not href.startswith("http"):
         if not href.startswith("/"):
             href = "/" + href
@@ -65,49 +71,50 @@ def get_root_url(url):
 
 
 def parse_page_for_phone(text):
-    # Define the regex pattern
-    # regex_pattern = r'(?:(?:\+|00)([1-9]\d{0,2})[.\- ]?)?(?:(?:\([1-9]\d{0,3}\)[.\- ]?)?(?:[1-9]\d{2}[.\- ]?|[1-9]\d{3}[.\- ]?)(?:\d{3}[.\- ]?\d{4}))'
-    # +123-456-7890
-    # (123) 456 7890
-    # 123.456.7890
-    # 1234567890k
-    # regex1 = r"\b(?:\+?\d{1,3}[-.●\s]?)?\(?\d{3}\)?[-.●\s]?\d{3}[-.●\s]?\d{4}\b"
-    # regex2 = r"^\+(?:1\s?)?\(\d{3}\)\s?\d{3}-\d{4}$"
-
-    # patterns = [
-    #     regex1,
-    #     regex2,
-    # ]
-
-    # # Search for the first occurrence of the phone number
-    # matches = []
-    # for regex in patterns:
-    #     match = re.search(regex, text)
-    #     if match:
-    #         matches.append(match.group(0))
-
-    # return matches
-    keywords = ["phone", "tel", "mobile"]
     soup = BeautifulSoup(text, "html.parser")
     for data in soup(["style", "script"]):
         data.decompose()
-    #regex = r"^(mobile:)?(tel:)?(phone)?\+?(?:[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15}$"
-    regex = r"^([^a-z])*(mobile:)?(tel:)?(phone)?\+?(?:[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15}([^a-z])*$"
+
+    keywords = ["phone", "tel", "mobile"]
+    # Create a list of potentialy searchable elements
+    # Gather all elements that contain(as substring) the keywords in:
+    # attribute keys, attribute values, tag names and text
+    searchable_elements = []
     for word in keywords:
         for element in soup.find_all():
             if contains_substring(element, word):
-                #print(f"ELEMENT: {element} WORD: {word}")
+                # print(f"ELEMENT: {element} WORD: {word}")
+                # Include children of element
+                # The keyword might be contained in element several levels up
+                # from a target element that holds just the phone
                 for e in element.find_all(recursive=True):
                     # text = get_direct_text(child)
-                    text = e.get_text()
-                    if text != "":
-                        #if e.name == "a" and word == "tel":
-                        print(f"CHILD: {e}")
-                        print(f"TEXT: {text}")
-                        match = re.search(regex, text)
-                        if match:
-                            print(element, word)
-                            return match.group(0).strip()
+                    searchable_elements.append(e)
+                    parent = e.parent
+                    # Include siblings of element
+                    # A sibling might contain the keyword
+                    # While the target element might contain just the phone
+                    for sibling in parent.children:
+                        searchable_elements.append(sibling)
+
+    # regex = r"^([^a-z])*(mobile:)?(tel:)?(phone:)?\+?(?:[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15}([^a-z])*$"
+    # Gist of the regex:
+    # Search for a phone number that is the ONLY content inside an element
+    # It is between 5-15 digits
+    # It might have spaces(0 to 2) between the digits
+    # It might be prefixed: mobile:, tel:, phone: & whitespace characters
+    regex = r"^(?:[^a-zA-Z\d])*(?:mobile:)?(?:tel:)?(?:phone:)?\+?((?:[\s\-()]{0,2}[\d()*][\s\-()]{0,2}){5,15})(?:[^a-zA-Z\d])*$"
+    for e in searchable_elements:
+        text = e.get_text()
+        if text != "":
+            print("=======================START==============================")
+            print(f".....................ELEMENT.......................\n {e}")
+            print(f"......................TEXT......................\n {text}")
+            print("------------------------END-------------------------------")
+            match = re.search(regex, text)
+            if match:
+                print("MATCH")
+                return match.group(1).strip()
 
     # return elements
     return None
@@ -139,24 +146,15 @@ def contains_substring(element, s):
     return False
 
 
-def get_page_links(url_and_data, depth):
-    if depth >= 10:
+def crawl_web_pages(url_and_data, depth):
+    if depth >= MAX_DEPTH:
         yield None
 
     new_url_and_data = {}
     for url in url_and_data:
         if url_and_data[url] is None:
-            # log
-            # i = 0
-            # for u in url_and_data:
-            #     if url_and_data[u] is not None:
-            #         i = i + 1
-                    # print(u)
-            # print(f"DOWNLOADING: {url}")
             print(url)
-            # print(f"ALREADY DOWNLOADED {i}")
-            # print(f"DEPTH: {depth}")
-            # log
+
             html = get_html(url)
             url_and_data[url] = html
             yield html
@@ -166,38 +164,41 @@ def get_page_links(url_and_data, depth):
             for link in links:
                 href = link["href"]
                 if href.startswith(get_root_url(url)):  # Absolute URL
-                    page_url = sanitize(href)
+                    page_url = normalize_url(href)
                     # print(f"HERE: url: {url}, href: {href}, get_root_url: {get_root_url(url)}")
                     # print(f"URL {page_url} HREF")
                 elif href.startswith("http"):  # Foreign domain absolute URL
                     continue
                 else:  # Relative URL
                     # print(f"HERE: url: {url}, href: {sanitize(href)}")
-                    page_url = url + sanitize(href)
+                    page_url = url + normalize_url(href)
 
                 new_url_and_data[page_url] = None
             # print(f"NEW URL_AND_DATA: {new_url_and_data.keys()}")
 
-    yield from get_page_links({**new_url_and_data, **url_and_data}, depth + 1)
+    yield from crawl_web_pages({**new_url_and_data, **url_and_data}, depth + 1)
 
 
-@shared_task
+@shared_task(soft_time_limit=TIME_LIMIT)
 def run_scrape_job(collector_job_id):
-    job = CollectorJob.objects.get(pk=collector_job_id)
-    change_job_status(job)
+    try:
+        job = CollectorJob.objects.get(pk=collector_job_id)
+        change_job_status(job)
 
-    base_url = get_protocol(job.domain.name)
+        base_url = get_protocol(job.domain.name)
 
-    page_gen = get_page_links({base_url: None}, 0)
-    for _ in range(300):
-        html = next(page_gen)
-        if html is None:
-            break
+        page_gen = crawl_web_pages({base_url: None}, 0)
+        for _ in range(MAX_PAGES):
+            html = next(page_gen)
+            if html is None:
+                break
 
-        phone = parse_page_for_phone(html)
-        if phone:
-            print(f"PHONE: {phone}")
-            break
-        # if elements:
-        #     for e in elements:
-        # print(e)
+            phone = parse_page_for_phone(html)
+            if phone:
+                print(f"PHONE: {phone}")
+                create_contact(job, Contact.PHONE, phone)
+                job.status = CollectorJob.COMPLETED
+                job.save()
+                break
+    except SoftTimeLimitExceeded:
+        print("Task timed out")
