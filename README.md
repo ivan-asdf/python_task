@@ -83,6 +83,7 @@ A disabled collector will not run for newly added domains. **Disabling collector
 - google.at
   - whois
     - phone
+    - email
 - google.co.cr
   - whois
     - phone
